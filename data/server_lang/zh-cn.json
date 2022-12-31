@@ -1,0 +1,156 @@
+{"translation": 
+    [
+        {
+    		"key": "Language successfully switched to English",
+    		"value": "语言成功切换为中文"
+    	},
+        {
+            "key": "Unknown language or no input language code",
+            "value": "未知语言或没有输入语言代码"
+        },
+        {
+            "key": "Available languages: %s",
+            "value": "可用语言: %s"
+        },
+        {
+            "key": "'%s' entered and join the %s",
+            "value": "'%s' 连接并加入了%s"
+        },
+        {
+            "key": "'%s' has left the game",
+            "value": "'%s' 离开了游戏"
+        },
+        {
+            "key": "hider",
+            "value": "躲藏者"
+        },
+        {
+            "key": "seeker",
+            "value": "抓捕者"
+        },
+        {
+            "key": "game",
+            "value": "游戏"
+        },
+        {
+            "key": "spectators",
+            "value": "旁观者"
+        },
+        {
+            "key": "Spectators aren't allowed to start a vote.",
+            "value": "旁观者不能发起投票."
+        },
+        {
+            "key": "Wait for current vote to end before calling a new one.",
+            "value": "等待当前投票结束后发起新的投票."
+        },
+        {
+            "key": "Vote aborted",
+            "value": "投票中止"
+        },
+        {
+            "key": "Vote passed",
+            "value": "投票通过"
+        },
+        {
+            "key": "Vote failed",
+            "value": "投票否决"
+        },
+        {
+            "key":  "admin forced server option '%s' (%s)",
+            "value":  "管理员修改了服务器设置 '%s' (%s)"
+        },
+        {
+            "key": "admin moved '%s' to spectator (%s)",
+            "value": "管理员将 '%s' 移到旁观 (%s)"
+        },
+        {
+            "key": "admin forced vote yes",
+            "value": "管理员强制通过投票"
+        },
+        {
+            "key": "admin forced vote no",
+            "value": "管理员强制否决投票"
+        },
+        {
+            "key": "You must wait %d seconds before making another vote",
+            "value": "你必须等待 %d 秒才能再次提出另一个投票"
+        },
+        {
+            "key": "'%s' called vote to change server option '%s' (%s)",
+            "value": "'%s' 提议修改服务器设置 '%s' (%s)"
+        },
+        {
+            "key": "'%s' isn't an option on this server",
+            "value": "'%s' 在此服务器上并不是一个设置"
+        },
+        {
+            "key": "Server does not allow voting to kick players",
+            "value": "服务器不允许投票踢出玩家"
+        },
+        {
+            "key": "Kick voting requires %d players on the server",
+            "value": "在这个服务器上开始踢出的投票需要%d名玩家"
+        },
+        {
+            "key": "Invalid client id to kick",
+            "value": "无效的踢出者客户端ID"
+        },
+        {
+            "key": "You can't kick yourself",
+            "value": "你不能踢出你自己"
+        },
+        {
+            "key": "You can't kick admins",
+            "value": "你不能踢出管理员"
+        },
+        {
+            "key": "'%s' called for vote to kick you",
+            "value": "'%s' 提议踢出你"
+        },
+        {
+            "key": "'%s' called for vote to kick '%s' (%s)",
+            "value": "'%s' 提议踢出 '%s' (%s)"
+        },
+        {
+            "key": "Server does not allow voting to move players to spectators",
+            "value": "服务器不允许投票移动玩家到旁观"
+        },
+        {
+            "key": "Invalid client id to move",
+            "value": "缺少要移动的客户端ID"
+        },
+        {
+            "key": "You can't move yourself",
+            "value": "你不能移动你自己"
+        },
+        {
+            "key": "'%s' called for vote to move '%s' to spectators (%s)",
+            "value": "'%s' 提议将 '%s' 移到旁观 (%s)"
+        },
+        {
+            "key": "Invalid spectator id used",
+            "value": "无效的旁观者客户端ID"
+        },
+        {
+            "key": "'%s' changed name to '%s'",
+            "value": "'%s' 改名为 '%s'"
+        },
+        {
+            "key": "Hiders win!",
+            "value": "躲藏者胜利!"
+        },
+        {
+            "key": "Seekers win!",
+            "value": "抓捕者胜利!"
+        },
+        {
+            "key": "%s hiders left!",
+            "value": "还剩%s个躲藏者" 
+        },
+        {
+            "key": "Only a hider lefts!",
+            "value": "仅剩一个躲藏者!"
+        }
+    ]
+}
