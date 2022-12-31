@@ -151,6 +151,10 @@
         {
             "key": "Only a hider lefts!",
             "value": "仅剩一个躲藏者!"
+        },
+        {
+            "key": "'%s' is seeker now!",
+            "value": "'%s'是抓捕者了!"
         }
     ]
 }

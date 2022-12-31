@@ -30,6 +30,8 @@ void CGameControllerMOD::OnPlayerBeSeeker(int ClientID)
 		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
 	}
 
+	GameServer()->SendChatTarget_Locazition(-1, "'%s' is seeker now!", Server()->ClientName(ClientID));
+
 	if(Hiders > 1)
 	{
 		GameServer()->SendChatTarget_Locazition(-1, "%s hiders left!", Hiders);

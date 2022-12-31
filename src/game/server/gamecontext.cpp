@@ -9,7 +9,7 @@
 #include <game/version.h>
 #include <game/collision.h>
 #include <game/gamecore.h>
-#include <gamemodes/mod.h>
+#include "gamemodes/mod.h"
 
 #include <teeuniverses/components/localization.h>
 
@@ -1628,7 +1628,6 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		}
 	}
 #endif
-	OnMenuOptionsInit();
 }
 
 void CGameContext::OnShutdown()

@@ -652,6 +652,10 @@ void IGameController::DoWincheck()
 	}
 }
 
+void IGameController::OnPlayerBeSeeker(int ClientID)
+{
+}
+
 int IGameController::ClampTeam(int Team)
 {
 	if(Team < 0)
