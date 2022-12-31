@@ -241,6 +241,9 @@ void CCharacter::FireWeapon()
 	if(m_ReloadTimer != 0)
 		return;
 
+	if(m_FreezeEndTick > Server()->Tick())
+		return;
+
 	DoWeaponSwitch();
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 
@@ -503,9 +506,27 @@ void CCharacter::HandleEvents()
 		m_DeepFreeze = 1;
 	}else m_JailTick = 0;
 
-	if(m_JailTick >= Server()->Tick() + Server()->TickSpeed() * g_Config.m_SvHiderToSeekerSec)
+	if(m_DeepFreeze)
+	{
+		Freeze(30.0f);
+	}
+
+	if(m_JailTick)
+	{
+		int Sec = m_JailTick/Server()->TickSpeed();
+		GameServer()->SendBroadcast_VL("Jail: %d sec", GetCID(), Sec);
+	}
+
+	if(m_pPlayer->GetTeam() == TEAM_RED)
+	{
+		m_Core.m_InfniteJumps = 1;
+		m_ActiveWeapon = WEAPON_HAMMER;
+	}else m_Core.m_InfniteJumps = 0;
+
+	if(m_JailTick >= Server()->TickSpeed() * g_Config.m_SvHiderToSeekerSec)
 	{
 		m_pPlayer->SetTeam(TEAM_RED, false);
+		GameServer()->m_pController->OnPlayerBeSeeker(GetCID());
 	}
 
 	if(!m_pPlayer)
@@ -695,20 +716,21 @@ void CCharacter::Die(int Killer, int Weapon)
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
 	CPlayer *pFrom = GameServer()->m_apPlayers[From];
+	m_Core.m_Vel += Force;
+
 	if(pFrom && pFrom->GetTeam() == m_pPlayer->GetTeam())
 	{
-		m_FreezeEndTick -= Server()->TickSpeed();
+		if(m_DeepFreeze)
+			m_DeepFreeze = false;
+		else m_FreezeEndTick -= Server()->TickSpeed() * 10;
 		return false;
 	}
 
 	if(pFrom && pFrom->GetTeam() == TEAM_RED)
 	{
 		m_FreezeEndTick = Server()->Tick() + Server()->TickSpeed() * g_Config.m_SvHiderFreezeSec;
-	}else
-	{
-		m_Core.m_Vel += Force/Force*4.0f;
 	}
-
+	
 	return true;
 }
 
@@ -807,7 +829,7 @@ void CCharacter::Snap(int SnappingClient)
 	{
 		pDDNetCharacter->m_Flags |= CHARACTERFLAG_IN_FREEZE;
 		pDDNetCharacter->m_FreezeStart = m_FreezeStartTick;
-		pDDNetCharacter->m_FreezeEnd =	m_FreezeEndTick;
+		pDDNetCharacter->m_FreezeEnd =	m_DeepFreeze ? -1 : m_FreezeEndTick;
 		pDDNetCharacter->m_Jumps = 0;
 	}
 

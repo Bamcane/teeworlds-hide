@@ -13,7 +13,7 @@
             "value": "可用语言: %s"
         },
         {
-            "key": "'%s' entered and join the %s",
+            "key": "'%s' entered and joined the %s",
             "value": "'%s' 连接并加入了%s"
         },
         {
@@ -155,6 +155,10 @@
         {
             "key": "'%s' is seeker now!",
             "value": "'%s'是抓捕者了!"
+        },
+        {
+            "key": "Jail: %d sec",
+            "value": "监狱: %d秒"
         }
     ]
 }

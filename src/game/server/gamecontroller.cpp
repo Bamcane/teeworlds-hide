@@ -183,7 +183,6 @@ void IGameController::StartRound()
 		GameServer()->m_apPlayers[i]->SetTeam(TEAM_BLUE, false);
 	}
 
-	DoWarmup(g_Config.m_SvWarmup);
 	m_RoundStartTick = Server()->Tick();
 	m_SuddenDeath = 0;
 	m_GameOverTick = -1;
@@ -442,7 +441,7 @@ void IGameController::Tick()
 		apPlayers.add(GameServer()->m_apPlayers[i]);
 	}
 
-	if(!m_Warmup && !Seekers)
+	if(!m_Warmup && !Seekers && apPlayers.size())
 	{
 		apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, false);
 	}
@@ -530,6 +529,14 @@ void IGameController::Snap(int SnappingClient)
 
 	pGameInfoObj->m_RoundNum = (str_length(g_Config.m_SvMaprotation) && g_Config.m_SvRoundsPerMap) ? g_Config.m_SvRoundsPerMap : 0;
 	pGameInfoObj->m_RoundCurrent = m_RoundCount+1;
+	
+	CNetObj_GameInfoEx* pGameInfoEx = (CNetObj_GameInfoEx*)Server()->SnapNewItem(NETOBJTYPE_GAMEINFOEX, 0, sizeof(CNetObj_GameInfoEx));
+	if(!pGameInfoEx)
+		return;
+
+	pGameInfoEx->m_Flags = GAMEINFOFLAG_GAMETYPE_PLUS | GAMEINFOFLAG_ALLOW_EYE_WHEEL | GAMEINFOFLAG_ALLOW_HOOK_COLL | GAMEINFOFLAG_ALLOW_ZOOM | GAMEINFOFLAG_PREDICT_VANILLA;
+	pGameInfoEx->m_Flags2 = GAMEINFOFLAG2_GAMETYPE_CITY | GAMEINFOFLAG2_ALLOW_X_SKINS | GAMEINFOFLAG2_HUD_DDRACE | GAMEINFOFLAG2_HUD_HEALTH_ARMOR | GAMEINFOFLAG2_HUD_AMMO;
+	pGameInfoEx->m_Version = GAMEINFO_CURVERSION;
 }
 
 int IGameController::GetAutoTeam(int NotThisID)
@@ -654,6 +661,30 @@ void IGameController::DoWincheck()
 
 void IGameController::OnPlayerBeSeeker(int ClientID)
 {
+	int Hiders=0, Seekers=0;
+	for(int i = 0;i < MAX_CLIENTS;i++)
+	{
+		if(!GameServer()->m_apPlayers[i]) continue;;
+		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
+		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
+	}
+
+	GameServer()->SendChatTarget_Locazition(-1, "'%s' is seeker now!", Server()->ClientName(ClientID));
+
+	if(Hiders > 1)
+	{
+		GameServer()->SendChatTarget_Locazition(-1, "%s hiders left!", Hiders);
+	}else if(Hiders)
+	{
+		GameServer()->SendChatTarget_Locazition(-1, "Only a hider lefts!", Hiders);
+	}
+
+	if(!Hiders && Seekers > 0)
+	{
+		GameServer()->SendChatTarget_Locazition(-1, "Seekers win!");
+		EndRound();
+		return;
+	}
 }
 
 int IGameController::ClampTeam(int Team)

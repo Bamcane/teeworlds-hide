@@ -22,28 +22,4 @@ void CGameControllerMOD::Tick()
 
 void CGameControllerMOD::OnPlayerBeSeeker(int ClientID)
 {
-	int Hiders=0, Seekers=0;
-	for(int i = 0;i < MAX_CLIENTS;i++)
-	{
-		if(!GameServer()->m_apPlayers[i]) continue;;
-		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
-		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
-	}
-
-	GameServer()->SendChatTarget_Locazition(-1, "'%s' is seeker now!", Server()->ClientName(ClientID));
-
-	if(Hiders > 1)
-	{
-		GameServer()->SendChatTarget_Locazition(-1, "%s hiders left!", Hiders);
-	}else if(Hiders)
-	{
-		GameServer()->SendChatTarget_Locazition(-1, "Only a hider lefts!", Hiders);
-	}
-
-	if(!Hiders && Seekers)
-	{
-		GameServer()->SendChatTarget_Locazition(-1, "Seekers win!");
-		EndRound();
-		return;
-	}
 }
