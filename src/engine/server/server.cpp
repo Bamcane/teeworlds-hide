@@ -1763,6 +1763,7 @@ char *CServer::GetMapName()
 
 int CServer::LoadMap(const char *pMapName)
 {
+	m_MapReload = false;
 	//DATAFILE *df;
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "maps/%s.map", pMapName);
@@ -2188,6 +2189,16 @@ void CServer::ConchainConsoleOutputLevelUpdate(IConsole::IResult *pResult, void 
 	}
 }
 
+void CServer::ConchainMapUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
+{
+	pfnCallback(pResult, pCallbackUserData);
+	if(pResult->NumArguments() >= 1)
+	{
+		CServer *pThis = static_cast<CServer *>(pUserData);
+		pThis->m_MapReload = str_comp(g_Config.m_SvMap, pThis->m_aCurrentMap) != 0;
+	}
+}
+
 void CServer::RegisterCommands()
 {
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
@@ -2214,6 +2225,7 @@ void CServer::RegisterCommands()
 	Console()->Chain("sv_max_clients_per_ip", ConchainMaxclientsperipUpdate, this);
 	Console()->Chain("mod_command", ConchainModCommandUpdate, this);
 	Console()->Chain("console_output_level", ConchainConsoleOutputLevelUpdate, this);
+	Console()->Chain("sv_map", ConchainMapUpdate, this);
 	// register console commands in sub parts
 	m_ServerBan.InitServerBan(Console(), Storage(), this);
 	m_pGameServer->OnConsoleInit();
