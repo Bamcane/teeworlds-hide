@@ -187,7 +187,7 @@ void CCharacter::HandleNinja()
 void CCharacter::DoWeaponSwitch()
 {
 	// make sure we can switch
-	if(m_ReloadTimer != 0 || m_QueuedWeapon == -1)
+	if(m_ReloadTimer != 0 || m_QueuedWeapon == -1 || m_pPlayer->GetTeam() == TEAM_RED)
 		return;
 
 	// switch Weapon
