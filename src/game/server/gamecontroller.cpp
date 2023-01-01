@@ -419,7 +419,7 @@ void IGameController::Tick()
 	if(!GameServer()->m_World.m_Paused && m_Warmup)
 	{
 		m_Warmup--;
-		if(!m_Warmup)
+		if(!m_Warmup && apPlayers.size())
 			apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, false);
 	}
 
