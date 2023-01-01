@@ -723,6 +723,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 		Dmg *= 2;
 		Force *= 2;
 	}
+	m_Core.m_Vel += Force;
 
 	if(pFrom && pFrom->GetTeam() == m_pPlayer->GetTeam())
 	{
@@ -736,7 +737,6 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	{
 		Freeze(g_Config.m_SvHiderFreezeSec);
 	}
-	m_Core.m_Vel += Force;
 	
 	return true;
 }
@@ -851,7 +851,7 @@ int CCharacter::GetCID() const
 
 void CCharacter::Freeze(float Seconds)
 {
-	if(!m_Alive)
+	if(!m_Alive || m_FreezeEndTick > Server()->Tick())
 		return;
 	m_FreezeStartTick = Server()->Tick();
 	m_FreezeEndTick = m_FreezeStartTick + Server()->TickSpeed() * Seconds;
