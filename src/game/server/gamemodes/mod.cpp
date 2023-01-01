@@ -61,7 +61,7 @@ void CGameControllerMOD::OnPlayerBeSeeker(int ClientID)
 
 	if(Hiders > 1)
 	{
-		GameServer()->SendChatTarget_Locazition(-1, "%s hiders left!", Hiders);
+		GameServer()->SendChatTarget_Locazition(-1, "%d hiders left!", Hiders);
 	}else if(Hiders)
 	{
 		GameServer()->SendChatTarget_Locazition(-1, "Only a hider lefts!");
