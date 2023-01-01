@@ -8,10 +8,12 @@
 // todo a modification with their base as well.
 class CGameControllerMOD : public IGameController
 {
+	int m_LastPlayersNum;
 public:
 	CGameControllerMOD(class CGameContext *pGameServer);
 	void Tick() override;
 	void OnPlayerBeSeeker(int ClientID) override;
+	int GetAutoTeam(int NotThisID) override;
 	// add more virtual functions here if you wish
 };
 #endif

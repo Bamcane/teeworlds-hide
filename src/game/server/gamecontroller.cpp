@@ -404,12 +404,23 @@ bool IGameController::CanBeMovedOnBalance(int ClientID)
 
 void IGameController::Tick()
 {
+	int Hiders=0, Seekers=0;
+	array<CPlayer*> apPlayers;
+	for(int i = 0;i < MAX_CLIENTS;i++)
+	{
+		if(!GameServer()->m_apPlayers[i]) continue;;
+		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS) continue;
+		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
+		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
+
+		apPlayers.add(GameServer()->m_apPlayers[i]);
+	}
 	// do warmup
 	if(!GameServer()->m_World.m_Paused && m_Warmup)
 	{
 		m_Warmup--;
 		if(!m_Warmup)
-			StartRound();
+			apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, false);
 	}
 
 	if(m_GameOverTick != -1)
@@ -429,21 +440,9 @@ void IGameController::Tick()
 			GameServer()->m_World.m_Paused = false;
 	}
 
-	int Hiders=0, Seekers=0;
-	array<CPlayer*> apPlayers;
-	for(int i = 0;i < MAX_CLIENTS;i++)
+	if(!Seekers && !Hiders)
 	{
-		if(!GameServer()->m_apPlayers[i]) continue;;
-		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS) continue;
-		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
-		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
-
-		apPlayers.add(GameServer()->m_apPlayers[i]);
-	}
-
-	if(!m_Warmup && !Seekers && apPlayers.size())
-	{
-		apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, false);
+		m_RoundStartTick++;
 	}
 
 	// game is Paused
@@ -661,30 +660,6 @@ void IGameController::DoWincheck()
 
 void IGameController::OnPlayerBeSeeker(int ClientID)
 {
-	int Hiders=0, Seekers=0;
-	for(int i = 0;i < MAX_CLIENTS;i++)
-	{
-		if(!GameServer()->m_apPlayers[i]) continue;;
-		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
-		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
-	}
-
-	GameServer()->SendChatTarget_Locazition(-1, "'%s' is seeker now!", Server()->ClientName(ClientID));
-
-	if(Hiders > 1)
-	{
-		GameServer()->SendChatTarget_Locazition(-1, "%s hiders left!", Hiders);
-	}else if(Hiders)
-	{
-		GameServer()->SendChatTarget_Locazition(-1, "Only a hider lefts!", Hiders);
-	}
-
-	if(!Hiders && Seekers > 0)
-	{
-		GameServer()->SendChatTarget_Locazition(-1, "Seekers win!");
-		EndRound();
-		return;
-	}
 }
 
 int IGameController::ClampTeam(int Team)

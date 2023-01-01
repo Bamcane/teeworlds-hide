@@ -525,8 +525,8 @@ void CCharacter::HandleEvents()
 
 	if(m_JailTick >= Server()->TickSpeed() * g_Config.m_SvHiderToSeekerSec)
 	{
-		m_pPlayer->SetTeam(TEAM_RED, false);
 		GameServer()->m_pController->OnPlayerBeSeeker(GetCID());
+		m_pPlayer->SetTeam(TEAM_RED, false);
 	}
 
 	if(!m_pPlayer)

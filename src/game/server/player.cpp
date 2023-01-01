@@ -162,7 +162,7 @@ void CPlayer::Snap(int SnappingClient)
 	if(!pClientInfo)
 		return;
 
-	if((pPlayer && pPlayer->GetTeam() != TEAM_RED) || m_Team <= TEAM_BLUE)
+	if((pPlayer && pPlayer->GetTeam() != TEAM_RED) || m_Team != TEAM_BLUE)
 	{
 		StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
 		StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
@@ -325,7 +325,8 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 		GameServer()->SendChatTarget_Locazition(-1, "'%s' joined the %s", Server()->ClientName(m_ClientID), GameServer()->m_pController->GetTeamName(Team));
 	}
 
-	KillCharacter();
+	if(Team != m_Team)
+		KillCharacter();
 
 	m_Team = Team;
 	m_LastActionTick = Server()->Tick();

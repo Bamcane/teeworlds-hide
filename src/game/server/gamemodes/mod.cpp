@@ -10,16 +10,67 @@ CGameControllerMOD::CGameControllerMOD(class CGameContext *pGameServer)
 	// DM, TDM and CTF are reserved for teeworlds original modes.
 	m_pGameType = "Hide";
 
+	m_LastPlayersNum = 0;
+
 	m_GameFlags = GAMEFLAG_TEAMS; // GAMEFLAG_TEAMS makes it a two-team gamemode
 }
 
 void CGameControllerMOD::Tick()
 {
 	// this is the main part of the gamemode, this function is run every tick
+	int Hiders=0, Seekers=0;
+	for(int i = 0;i < MAX_CLIENTS;i++)
+	{
+		if(!GameServer()->m_apPlayers[i]) continue;
+		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
+		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
+	}
 
+	if(m_LastPlayersNum < 2 && (Hiders + Seekers) >= 2)
+	{
+		GameServer()->SendBroadcast("", -1);
+		StartRound();
+	}else if(m_LastPlayersNum < 2 && (Server()->Tick()%25) == 0) GameServer()->SendBroadcast_VL("Wait game start!", -1);
+
+	if(!IsGameOver())
+	{
+		if(!Hiders && Seekers > 0)
+		{
+			GameServer()->SendChatTarget_Locazition(-1, "Seekers win!");
+			EndRound();
+			return;
+		}
+	}
 	IGameController::Tick();
+
+	m_LastPlayersNum = Hiders + Seekers;
 }
 
 void CGameControllerMOD::OnPlayerBeSeeker(int ClientID)
 {
+	GameServer()->SendChatTarget_Locazition(-1, "'%s' is seeker now!", Server()->ClientName(ClientID));	
+
+	// this is the main part of the gamemode, this function is run every tick
+	int Hiders=-1, Seekers=0;
+	for(int i = 0;i < MAX_CLIENTS;i++)
+	{
+		if(!GameServer()->m_apPlayers[i]) continue;
+		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
+		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
+	}
+
+	if(Hiders > 1)
+	{
+		GameServer()->SendChatTarget_Locazition(-1, "%s hiders left!", Hiders);
+	}else if(Hiders)
+	{
+		GameServer()->SendChatTarget_Locazition(-1, "Only a hider lefts!");
+	}
+}
+
+int CGameControllerMOD::GetAutoTeam(int NotThisID)
+{
+	if(IsGameOver() || m_Warmup)
+		return TEAM_BLUE;
+	else return TEAM_RED;
 }

@@ -159,6 +159,10 @@
         {
             "key": "Jail: %d sec",
             "value": "监狱: %d秒"
+        },
+        {
+            "key": "Wait game start!",
+            "value": "等待游戏开始!"
         }
     ]
 }
