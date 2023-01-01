@@ -419,8 +419,13 @@ void IGameController::Tick()
 	if(!GameServer()->m_World.m_Paused && m_Warmup)
 	{
 		m_Warmup--;
-		if(!m_Warmup && apPlayers.size())
+		if(!m_Warmup && apPlayers.size() > 1)
 			apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, false);
+	}
+
+	if(!Seekers && Hiders && apPlayers.size() > 1)
+	{
+		apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, false);
 	}
 
 	if(m_GameOverTick != -1)
