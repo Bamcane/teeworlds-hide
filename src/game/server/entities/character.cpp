@@ -716,20 +716,27 @@ void CCharacter::Die(int Killer, int Weapon)
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
 	CPlayer *pFrom = GameServer()->m_apPlayers[From];
-	m_Core.m_Vel += Force;
+	
+
+	if(pFrom && pFrom->GetTeam() != TEAM_RED)
+	{
+		Dmg *= 2;
+		Force *= 2;
+	}
 
 	if(pFrom && pFrom->GetTeam() == m_pPlayer->GetTeam())
 	{
 		if(m_DeepFreeze)
 			m_DeepFreeze = false;
-		else m_FreezeEndTick -= Server()->TickSpeed() * 10;
+		else m_FreezeEndTick -= Server()->TickSpeed() * Dmg;
 		return false;
 	}
 
 	if(pFrom && pFrom->GetTeam() == TEAM_RED)
 	{
-		m_FreezeEndTick = Server()->Tick() + Server()->TickSpeed() * g_Config.m_SvHiderFreezeSec;
+		Freeze(g_Config.m_SvHiderFreezeSec);
 	}
+	m_Core.m_Vel += Force;
 	
 	return true;
 }
