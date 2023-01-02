@@ -248,7 +248,7 @@ void CCharacter::FireWeapon()
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 
 	bool FullAuto = false;
-	if(m_ActiveWeapon == WEAPON_GRENADE || m_ActiveWeapon == WEAPON_SHOTGUN || m_ActiveWeapon == WEAPON_RIFLE)
+	if(m_ActiveWeapon == WEAPON_GUN)
 		FullAuto = true;
 
 
@@ -323,14 +323,7 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_GUN:
 		{
-			CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GUN,
-				m_pPlayer->GetCID(),
-				ProjStartPos,
-				Direction,
-				(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GunLifetime),
-				1, 0, 0, -1, WEAPON_GUN);
-
-			GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
+			m_Core.m_Vel = -Direction;
 		} break;
 
 		case WEAPON_SHOTGUN:
