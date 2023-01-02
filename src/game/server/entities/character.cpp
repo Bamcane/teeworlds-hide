@@ -323,7 +323,11 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_GUN:
 		{
-			m_Core.m_Vel = -Direction;
+			float MaxSpeed = GameServer()->Tuning()->m_GroundControlSpeed*1.5f;
+			vec2 Recoil = Direction*(-MaxSpeed/5.0f);
+			SaturateVelocity(Recoil, MaxSpeed);// infclass
+
+			GameServer()->CreateSound(m_Pos, SOUND_HOOK_LOOP);
 		} break;
 
 		case WEAPON_SHOTGUN:
@@ -643,6 +647,41 @@ void CCharacter::TickDefered()
 			m_ReckoningCore = m_Core;
 		}
 	}
+}
+
+
+void CCharacter::SaturateVelocity(vec2 Force, float MaxSpeed)
+{
+	if(length(Force) < 0.00001)
+		return;
+	
+	float Speed = length(m_Core.m_Vel);
+	vec2 VelDir = normalize(m_Core.m_Vel);
+	if(Speed < 0.00001)
+	{
+		VelDir = normalize(Force);
+	}
+	vec2 OrthoVelDir = vec2(-VelDir.y, VelDir.x);
+	float VelDirFactor = dot(Force, VelDir);
+	float OrthoVelDirFactor = dot(Force, OrthoVelDir);
+	
+	vec2 NewVel = m_Core.m_Vel;
+	if(Speed < MaxSpeed || VelDirFactor < 0.0f)
+	{
+		NewVel += VelDir*VelDirFactor;
+		float NewSpeed = length(NewVel);
+		if(NewSpeed > MaxSpeed)
+		{
+			if(VelDirFactor > 0.f)
+				NewVel = VelDir*MaxSpeed;
+			else
+				NewVel = -VelDir*MaxSpeed;
+		}
+	}
+	
+	NewVel += OrthoVelDir * OrthoVelDirFactor;
+	
+	m_Core.m_Vel = NewVel;
 }
 
 void CCharacter::TickPaused()

@@ -152,6 +152,7 @@ public:
 	int GetCID() const;
 
 	void Freeze(float Seconds);
+	void SaturateVelocity(vec2 Force, float MaxSpeed);
 	bool m_DeepFreeze;
 
 };
