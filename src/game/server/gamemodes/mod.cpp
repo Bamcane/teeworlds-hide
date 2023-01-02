@@ -1,6 +1,7 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <game/server/gamecontext.h>
+#include <engine/shared/config.h>
 #include "mod.h"
 
 CGameControllerMOD::CGameControllerMOD(class CGameContext *pGameServer)
@@ -31,6 +32,15 @@ void CGameControllerMOD::Tick()
 		GameServer()->SendBroadcast("", -1);
 		StartRound();
 	}else if(m_LastPlayersNum < 2 && (Server()->Tick()%25) == 0) GameServer()->SendBroadcast_VL("Wait game start!", -1);
+
+	if((Server()->Tick()-m_RoundStartTick) >= g_Config.m_SvTimelimit*Server()->TickSpeed()*60 - Server()->TickSpeed()*15)
+	{
+		if(!m_HiderAttackTime)
+		{
+			GameServer()->SendChatTarget_Locazition(-1, "Hider attack time!!");
+		}
+		m_HiderAttackTime = 1;
+	}else m_HiderAttackTime = 0;
 
 	if(!IsGameOver())
 	{

@@ -17,6 +17,10 @@
             "value": "'%s' 连接并加入了%s"
         },
         {
+            "key": "'%s' joined the %s",
+            "value": "'%s' 加入了%s"
+        },
+        {
             "key": "'%s' has left the game",
             "value": "'%s' 离开了游戏"
         },
@@ -163,6 +167,10 @@
         {
             "key": "Wait game start!",
             "value": "等待游戏开始!"
+        },
+        {
+            "key": "Hider attack time!!",
+            "value": "反击时间到!"
         }
     ]
 }
