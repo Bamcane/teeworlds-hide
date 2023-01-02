@@ -497,7 +497,7 @@ void CCharacter::HandleEvents()
 		GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_JAIL ||
 		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_JAIL ||
 		GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_JAIL)
-		&& m_FreezeEndTick > Server()->Tick())
+		&& m_pPlayer->GetTeam() == TEAM_BLUE && m_FreezeEndTick > Server()->Tick())
 	{
 		m_JailTick++;
 		m_DeepFreeze = 1;
@@ -772,7 +772,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 
 	if(pFrom && pFrom->GetTeam() != TEAM_RED)
 	{
-		Freeze(0.5);
+		Freeze(1.5f);
 	}
 	
 	return true;
