@@ -174,7 +174,24 @@ void CPlayer::Snap(int SnappingClient)
 	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
 	// TODO:rewrite the bot skin select
 	StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfos.m_SkinName);
-	pClientInfo->m_UseCustomColor = 0;
+	const int aTeamColors[2] = {65387, 10223467};
+	m_TeeInfos.m_UseCustomColor = 1;
+	if(GetTeam() >= TEAM_RED && GetTeam() <= TEAM_BLUE)
+	{
+		m_TeeInfos.m_ColorBody = aTeamColors[GetTeam()];
+		m_TeeInfos.m_ColorFeet = aTeamColors[GetTeam()];
+		if(GetTeam() == TEAM_BLUE && GetCharacter() && GetCharacter()->m_DeepFreeze)
+		{
+			pP->m_TeeInfos.m_ColorBody = 0;
+			pP->m_TeeInfos.m_ColorFeet = 0;
+		}
+	}
+	else
+	{
+		pP->m_TeeInfos.m_ColorBody = 12895054;
+		pP->m_TeeInfos.m_ColorFeet = 12895054;
+	}
+	pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
 	pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
 	pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
 
