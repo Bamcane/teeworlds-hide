@@ -523,10 +523,9 @@ void CCharacter::HandleEvents()
 		m_ActiveWeapon = WEAPON_HAMMER;
 	}else m_Core.m_InfniteJumps = 0;
 
-	if(m_JailTick >= Server()->TickSpeed() * g_Config.m_SvHiderToSeekerSec)
+	if(m_pPlayer->GetTeam() == TEAM_BLUE && m_JailTick >= Server()->TickSpeed() * g_Config.m_SvHiderToSeekerSec)
 	{
 		GameServer()->m_pController->OnPlayerBeSeeker(GetCID());
-		m_pPlayer->SetTeam(TEAM_RED, false);
 	}
 
 	if(!m_pPlayer)

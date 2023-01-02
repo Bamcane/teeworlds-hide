@@ -49,9 +49,9 @@ void CGameControllerMOD::Tick()
 void CGameControllerMOD::OnPlayerBeSeeker(int ClientID)
 {
 	GameServer()->SendChatTarget_Locazition(-1, "'%s' is seeker now!", Server()->ClientName(ClientID));	
-
+	GameServer()->m_apPlayers[ClientID]->SetTeam(TEAM_RED, false);
 	// this is the main part of the gamemode, this function is run every tick
-	int Hiders=-1, Seekers=0;
+	int Hiders=0, Seekers=0;
 	for(int i = 0;i < MAX_CLIENTS;i++)
 	{
 		if(!Server()->ClientIngame(i) || !GameServer()->m_apPlayers[i]) continue;
