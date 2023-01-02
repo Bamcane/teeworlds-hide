@@ -13,7 +13,7 @@ CGameControllerMOD::CGameControllerMOD(class CGameContext *pGameServer)
 
 	m_LastPlayersNum = 0;
 
-	m_GameFlags = GAMEFLAG_TEAMS; // GAMEFLAG_TEAMS makes it a two-team gamemode
+	//m_GameFlags = GAMEFLAG_TEAMS; // GAMEFLAG_TEAMS makes it a two-team gamemode
 }
 
 void CGameControllerMOD::Tick()

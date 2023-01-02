@@ -103,24 +103,15 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos)
 	if(Team == TEAM_SPECTATORS)
 		return false;
 
-	if(IsTeamplay())
-	{
-		Eval.m_FriendlyTeam = Team;
+	Eval.m_FriendlyTeam = Team;
 
-		// first try own team spawn, then normal spawn and then enemy
-		EvaluateSpawnType(&Eval, 1+(Team&1));
-		if(!Eval.m_Got)
-		{
-			EvaluateSpawnType(&Eval, 0);
-			if(!Eval.m_Got)
-				EvaluateSpawnType(&Eval, 1+((Team+1)&1));
-		}
-	}
-	else
+	// first try own team spawn, then normal spawn and then enemy
+	EvaluateSpawnType(&Eval, 1+(Team&1));
+	if(!Eval.m_Got)
 	{
 		EvaluateSpawnType(&Eval, 0);
-		EvaluateSpawnType(&Eval, 1);
-		EvaluateSpawnType(&Eval, 2);
+		if(!Eval.m_Got)
+			EvaluateSpawnType(&Eval, 1+((Team+1)&1));
 	}
 
 	*pOutPos = Eval.m_Pos;
@@ -160,13 +151,11 @@ void IGameController::ResetGame()
 
 const char *IGameController::GetTeamName(int Team)
 {
-	if(IsTeamplay())
-	{
-		if(Team == TEAM_RED)
-			return "seeker";
-		else if(Team == TEAM_BLUE)
-			return "hider";
-	}
+	if(Team == TEAM_RED)
+		return "seeker";
+	else if(Team == TEAM_BLUE)
+		return "hider";
+	
 
 	return "spectators";
 }
@@ -374,15 +363,12 @@ bool IGameController::IsFriendlyFire(int ClientID1, int ClientID2)
 	if(ClientID1 == ClientID2)
 		return false;
 
-	if(IsTeamplay())
-	{
-		if(!GameServer()->m_apPlayers[ClientID1] || !GameServer()->m_apPlayers[ClientID2])
-			return false;
+	if(!GameServer()->m_apPlayers[ClientID1] || !GameServer()->m_apPlayers[ClientID2])
+		return false;
 
-		if(GameServer()->m_apPlayers[ClientID1]->GetTeam() == GameServer()->m_apPlayers[ClientID2]->GetTeam())
-			return true;
-	}
-
+	if(GameServer()->m_apPlayers[ClientID1]->GetTeam() == GameServer()->m_apPlayers[ClientID2]->GetTeam())
+		return true;
+	
 	return false;
 }
 
@@ -560,8 +546,7 @@ int IGameController::GetAutoTeam(int NotThisID)
 	}
 
 	int Team = 0;
-	if(IsTeamplay())
-		Team = aNumplayers[TEAM_RED] > aNumplayers[TEAM_BLUE] ? TEAM_BLUE : TEAM_RED;
+	Team = aNumplayers[TEAM_RED] > aNumplayers[TEAM_BLUE] ? TEAM_BLUE : TEAM_RED;
 
 	if(CanJoinTeam(Team, NotThisID))
 		return Team;
@@ -588,7 +573,7 @@ bool IGameController::CanJoinTeam(int Team, int NotThisID)
 
 bool IGameController::CheckTeamBalance()
 {
-	if(!IsTeamplay() || !g_Config.m_SvTeambalanceTime)
+	if(!g_Config.m_SvTeambalanceTime)
 		return true;
 
 	int aT[2] = {0, 0};
@@ -621,7 +606,7 @@ bool IGameController::CanChangeTeam(CPlayer *pPlayer, int JoinTeam)
 {
 	int aT[2] = {0, 0};
 
-	if (!IsTeamplay() || JoinTeam == TEAM_SPECTATORS || !g_Config.m_SvTeambalanceTime)
+	if (JoinTeam == TEAM_SPECTATORS || !g_Config.m_SvTeambalanceTime)
 		return true;
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
@@ -672,7 +657,6 @@ int IGameController::ClampTeam(int Team)
 {
 	if(Team < 0)
 		return TEAM_SPECTATORS;
-	if(IsTeamplay())
-		return Team&1;
+	return Team&1;
 	return 0;
 }
