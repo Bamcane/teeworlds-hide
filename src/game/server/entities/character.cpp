@@ -723,6 +723,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 		Dmg *= 2;
 		Force *= 2;
 	}
+
 	m_Core.m_Vel += Force;
 
 	if(pFrom && pFrom->GetTeam() == m_pPlayer->GetTeam())
@@ -736,6 +737,11 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	if(pFrom && pFrom->GetTeam() == TEAM_RED)
 	{
 		Freeze(g_Config.m_SvHiderFreezeSec);
+	}
+
+	if(pFrom && pFrom->GetTeam() != TEAM_RED)
+	{
+		Freeze(0.5);
 	}
 	
 	return true;
