@@ -33,11 +33,12 @@ void CGameControllerMOD::Tick()
 		StartRound();
 	}else if(m_LastPlayersNum < 2 && (Server()->Tick()%25) == 0) GameServer()->SendBroadcast_VL("Wait game start!", -1);
 
-	if((Server()->Tick()-m_RoundStartTick) >= g_Config.m_SvTimelimit*Server()->TickSpeed()*60 - Server()->TickSpeed()*15)
+	if((Server()->Tick()-m_RoundStartTick) >= g_Config.m_SvTimelimit*Server()->TickSpeed()*60 - Server()->TickSpeed()*30)
 	{
 		if(!m_HiderAttackTime)
 		{
 			GameServer()->SendChatTarget_Locazition(-1, "Hider attack time!!");
+			GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE, -1);
 		}
 		m_HiderAttackTime = 1;
 	}else m_HiderAttackTime = 0;
@@ -47,6 +48,7 @@ void CGameControllerMOD::Tick()
 		if(!Hiders && Seekers > 0)
 		{
 			GameServer()->SendChatTarget_Locazition(-1, "Seekers win!");
+			GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE, -1);
 			EndRound();
 			return;
 		}

@@ -657,6 +657,7 @@ void IGameController::DoWincheck()
 		if((g_Config.m_SvTimelimit > 0 && (Server()->Tick()-m_RoundStartTick) >= g_Config.m_SvTimelimit*Server()->TickSpeed()*60))
 		{
 			GameServer()->SendChatTarget_Locazition(-1, "Hiders win!");
+			GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE, -1);
 			EndRound();
 			return;
 		}

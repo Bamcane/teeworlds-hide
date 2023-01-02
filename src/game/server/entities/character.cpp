@@ -765,7 +765,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 		return false;
 	}
 
-	if(pFrom && pFrom->GetTeam() == TEAM_RED)
+	if(!GameServer()->m_pController->m_HiderAttackTime && pFrom && pFrom->GetTeam() == TEAM_RED)
 	{
 		Freeze(g_Config.m_SvHiderFreezeSec);
 	}
