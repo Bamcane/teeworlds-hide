@@ -123,6 +123,8 @@ private:
 
 public:
 	CTuningParams* GetNextTuningParams() { return &m_NextTuningParams; };
+
+	bool m_Saying;
 };
 
 #endif

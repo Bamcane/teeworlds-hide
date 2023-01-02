@@ -21,7 +21,7 @@ void CGameControllerMOD::Tick()
 	int Hiders=0, Seekers=0;
 	for(int i = 0;i < MAX_CLIENTS;i++)
 	{
-		if(!GameServer()->m_apPlayers[i]) continue;
+		if(!Server()->ClientIngame(i) || !GameServer()->m_apPlayers[i]) continue;
 		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
 		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
 	}
@@ -54,7 +54,7 @@ void CGameControllerMOD::OnPlayerBeSeeker(int ClientID)
 	int Hiders=-1, Seekers=0;
 	for(int i = 0;i < MAX_CLIENTS;i++)
 	{
-		if(!GameServer()->m_apPlayers[i]) continue;
+		if(!Server()->ClientIngame(i) || !GameServer()->m_apPlayers[i]) continue;
 		if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_RED) Seekers++;
 		else if(GameServer()->m_apPlayers[i]->GetTeam() == TEAM_BLUE) Hiders++;
 	}

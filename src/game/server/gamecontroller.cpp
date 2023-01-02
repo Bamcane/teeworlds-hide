@@ -288,19 +288,21 @@ void IGameController::PostReset()
 void IGameController::OnPlayerInfoChange(class CPlayer *pP)
 {
 	const int aTeamColors[2] = {65387, 10223467};
-	if(IsTeamplay())
+	pP->m_TeeInfos.m_UseCustomColor = 1;
+	if(pP->GetTeam() >= TEAM_RED && pP->GetTeam() <= TEAM_BLUE)
 	{
-		pP->m_TeeInfos.m_UseCustomColor = 1;
-		if(pP->GetTeam() >= TEAM_RED && pP->GetTeam() <= TEAM_BLUE)
+		pP->m_TeeInfos.m_ColorBody = aTeamColors[pP->GetTeam()];
+		pP->m_TeeInfos.m_ColorFeet = aTeamColors[pP->GetTeam()];
+		if(pP->GetTeam() == TEAM_BLUE && pP->GetCharacter() && pP->GetCharacter()->m_DeepFreeze)
 		{
-			pP->m_TeeInfos.m_ColorBody = aTeamColors[pP->GetTeam()];
-			pP->m_TeeInfos.m_ColorFeet = aTeamColors[pP->GetTeam()];
+			pP->m_TeeInfos.m_ColorBody = 0;
+			pP->m_TeeInfos.m_ColorFeet = 0;
 		}
-		else
-		{
-			pP->m_TeeInfos.m_ColorBody = 12895054;
-			pP->m_TeeInfos.m_ColorFeet = 12895054;
-		}
+	}
+	else
+	{
+		pP->m_TeeInfos.m_ColorBody = 12895054;
+		pP->m_TeeInfos.m_ColorFeet = 12895054;
 	}
 }
 
@@ -331,10 +333,6 @@ void IGameController::OnCharacterSpawn(class CCharacter *pChr)
 
 	// give default weapons
 	pChr->GiveWeapon(WEAPON_HAMMER, -1);
-	pChr->GiveWeapon(WEAPON_GUN, -1);
-	pChr->GiveWeapon(WEAPON_SHOTGUN, -1);
-	pChr->GiveWeapon(WEAPON_GRENADE, -1);
-	pChr->GiveWeapon(WEAPON_RIFLE, -1);
 }
 
 void IGameController::DoWarmup(int Seconds)

@@ -138,7 +138,6 @@ private:
 
 private:
 	void UpdateTuning();
-	bool m_DeepFreeze;
 	int m_FreezeStartTick;
 	int m_FreezeEndTick;
 
@@ -153,6 +152,7 @@ public:
 	int GetCID() const;
 
 	void Freeze(float Seconds);
+	bool m_DeepFreeze;
 
 };
 

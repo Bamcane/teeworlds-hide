@@ -162,7 +162,7 @@ void CPlayer::Snap(int SnappingClient)
 	if(!pClientInfo)
 		return;
 
-	if((pPlayer && pPlayer->GetTeam() != TEAM_RED) || m_Team != TEAM_BLUE)
+	if(!(m_PlayerFlags&PLAYERFLAG_CHATTING) && (pPlayer && pPlayer->GetTeam() != TEAM_RED) || m_Team != TEAM_BLUE)
 	{
 		StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
 		StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
