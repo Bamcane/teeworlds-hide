@@ -323,7 +323,7 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_GUN:
 		{
-			float MaxSpeed = GameServer()->Tuning()->m_GroundControlSpeed*1.5f;
+			float MaxSpeed = GameServer()->Tuning()->m_GroundControlSpeed*2.2f;
 			vec2 Recoil = Direction*(-MaxSpeed/5.0f);
 			SaturateVelocity(Recoil, MaxSpeed);// infclass
 
