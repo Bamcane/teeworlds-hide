@@ -6,6 +6,8 @@
 #include "message.h"
 
 #include <game/generated/protocol.h>
+#include <game/generated/protocol7.h>
+#include <game/generated/protocolglue.h>
 #include <engine/shared/protocol.h>
 
 class IServer : public IInterface
@@ -50,24 +52,37 @@ public:
 
 	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID) = 0;
 
-	template<class T>
-	int SendPackMsg(T *pMsg, int Flags, int ClientID)
+	template<class T, typename std::enable_if<!protocol7::is_sixup<T>::value, int>::type = 0>
+	inline int SendPackMsg(const T *pMsg, int Flags, int ClientID)
 	{
-		int result = 0;
-		T tmp;
-		if (ClientID == -1)
+		int Result = 0;
+		if(ClientID == -1)
 		{
-			for(int i = 0; i < MAX_CLIENTS; i++)
+			for(int i = 0; i < MaxClients(); i++)
 				if(ClientIngame(i))
-				{
-					mem_copy(&tmp, pMsg, sizeof(T));
-					result = SendPackMsgTranslate(&tmp, Flags, i);
-				}
-		} else {
-			mem_copy(&tmp, pMsg, sizeof(T));
-			result = SendPackMsgTranslate(&tmp, Flags, ClientID);
+					Result = SendPackMsgTranslate(pMsg, Flags, i);
 		}
-		return result;
+		else
+		{
+			Result = SendPackMsgTranslate(pMsg, Flags, ClientID);
+		}
+		return Result;
+	}
+
+	template<class T, typename std::enable_if<protocol7::is_sixup<T>::value, int>::type = 1>
+	inline int SendPackMsg(const T *pMsg, int Flags, int ClientID)
+	{
+		int Result = 0;
+		if(ClientID == -1)
+		{
+			for(int i = 0; i < MaxClients(); i++)
+				if(ClientIngame(i) && IsSixup(i))
+					Result = SendPackMsgOne(pMsg, Flags, i);
+		}
+		else if(IsSixup(ClientID))
+			Result = SendPackMsgOne(pMsg, Flags, ClientID);
+
+		return Result;
 	}
 
 	template<class T>
@@ -78,20 +93,35 @@ public:
 
 	int SendPackMsgTranslate(CNetMsg_Sv_Emoticon *pMsg, int Flags, int ClientID)
 	{
-		return Translate(pMsg->m_ClientID, ClientID) && SendPackMsgOne(pMsg, Flags, ClientID);
+		CNetMsg_Sv_Emoticon MsgCopy;
+		mem_copy(&MsgCopy, pMsg, sizeof(MsgCopy));
+		return Translate(MsgCopy.m_ClientID, ClientID) && SendPackMsgOne(&MsgCopy, Flags, ClientID);
 	}
-
-	char msgbuf[1000];
 
 	int SendPackMsgTranslate(CNetMsg_Sv_Chat *pMsg, int Flags, int ClientID)
 	{
-		if (pMsg->m_ClientID >= 0 && !Translate(pMsg->m_ClientID, ClientID))
+		CNetMsg_Sv_Chat MsgCopy;
+		mem_copy(&MsgCopy, pMsg, sizeof(MsgCopy));
+
+		char aBuf[1000];
+		if(MsgCopy.m_ClientID >= 0 && !Translate(MsgCopy.m_ClientID, ClientID))
 		{
-			str_format(msgbuf, sizeof(msgbuf), "%s: %s", ClientName(pMsg->m_ClientID), pMsg->m_pMessage);
-			pMsg->m_pMessage = msgbuf;
-			pMsg->m_ClientID = VANILLA_MAX_CLIENTS - 1;
+			str_format(aBuf, sizeof(aBuf), "%s: %s", ClientName(MsgCopy.m_ClientID), MsgCopy.m_pMessage);
+			MsgCopy.m_pMessage = aBuf;
+			MsgCopy.m_ClientID = VANILLA_MAX_CLIENTS - 1;
 		}
-		return SendPackMsgOne(pMsg, Flags, ClientID);
+
+		if(IsSixup(ClientID))
+		{
+			protocol7::CNetMsg_Sv_Chat Msg7;
+			Msg7.m_ClientID = MsgCopy.m_ClientID;
+			Msg7.m_pMessage = MsgCopy.m_pMessage;
+			Msg7.m_Mode = MsgCopy.m_Team > 0 ? protocol7::CHAT_TEAM : protocol7::CHAT_ALL;
+			Msg7.m_TargetID = -1;
+			return SendPackMsgOne(&Msg7, Flags, ClientID);
+		}
+
+		return SendPackMsgOne(&MsgCopy, Flags, ClientID);
 	}
 
 	int SendPackMsgTranslate(CNetMsg_Sv_KillMsg *pMsg, int Flags, int ClientID)
@@ -104,7 +134,9 @@ public:
 	template<class T>
 	int SendPackMsgOne(T *pMsg, int Flags, int ClientID)
 	{
-        CMsgPacker Packer(pMsg->MsgID());
+		dbg_assert(ClientID != -1, "SendPackMsgOne called with -1");
+		CMsgPacker Packer(pMsg->MsgID(), false, protocol7::is_sixup<T>::value);
+
 		if(pMsg->Pack(&Packer))
 			return -1;
 		return SendMsg(&Packer, Flags, ClientID);
@@ -112,6 +144,8 @@ public:
 
 	bool Translate(int& target, int client)
 	{
+		if(IsSixup(client))
+			return true;
 		CClientInfo info;
 		GetClientInfo(client, &info);
 		if (info.m_CustClt)
@@ -132,6 +166,8 @@ public:
 
 	bool ReverseTranslate(int& target, int client)
 	{
+		if(IsSixup(client))
+			return true;
 		CClientInfo info;
 		GetClientInfo(client, &info);
 		if (info.m_CustClt)
@@ -172,6 +208,8 @@ public:
 	virtual void SetClientLanguage(int ClientID, const char* pLanguage) = 0;
 	virtual int* GetIdMap(int ClientID) = 0;
 	virtual void SetCustClt(int ClientID) = 0;
+
+	virtual bool IsSixup(int ClientID) const = 0;
 	
 	virtual void ExpireServerInfo() = 0;
 };
@@ -207,6 +245,14 @@ public:
 
 	virtual void OnSetAuthed(int ClientID, int Level) = 0;
 	virtual class CLayers *Layers() = 0;
+
+	/**
+	 * Used to report custom player info to master servers.
+	 * 
+	 * @param aBuf Should be the json key values to add, starting with a ',' beforehand, like: ',"skin": "default", "team": 1'
+	 * @param i The client id.
+	 */
+	virtual void OnUpdatePlayerServerInfo(char *aBuf, int BufSize, int ID) = 0;
 };
 
 extern IGameServer *CreateGameServer();

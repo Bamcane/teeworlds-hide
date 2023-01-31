@@ -9,7 +9,6 @@
 
 #include "system.h"
 
-
 #ifdef CONF_PLATFORM_LINUX
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -2256,6 +2255,27 @@ int str_utf8_decode(const char **ptr)
 	*ptr = buf;
 	return -1;
 
+}
+
+const char *str_utf8_find_nocase(const char *haystack, const char *needle)
+{
+	while(*haystack) /* native implementation */
+	{
+		const char *a = haystack;
+		const char *b = needle;
+		const char *a_next = a;
+		const char *b_next = b;
+		while(*a && *b && str_utf8_tolower(str_utf8_decode(&a_next)) == str_utf8_tolower(str_utf8_decode(&b_next)))
+		{
+			a = a_next;
+			b = b_next;
+		}
+		if(!(*b))
+			return haystack;
+		str_utf8_decode(&haystack);
+	}
+
+	return 0;
 }
 
 int str_utf8_check(const char *str)

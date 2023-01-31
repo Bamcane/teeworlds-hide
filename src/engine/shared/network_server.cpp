@@ -205,13 +205,6 @@ bool CNetServer::Connlimit(NETADDR Addr)
 
 int CNetServer::TryAcceptClient(NETADDR &Addr, SECURITY_TOKEN SecurityToken, bool VanillaAuth, bool Sixup, SECURITY_TOKEN Token)
 {
-	if(Sixup)
-	{
-		const char aMsg[] = "0.7 connections are not accepted at this time";
-		CNetBase::SendControlMsg(m_Socket, &Addr, 0, NET_CTRLMSG_CLOSE, aMsg, sizeof(aMsg), SecurityToken, Sixup);
-		return -1; // failed to add client?
-	}
-
 	if(Connlimit(Addr))
 	{
 		const char aMsg[] = "Too many connections in a short time";
@@ -735,7 +728,7 @@ int CNetServer::Send(CNetChunk *pChunk)
 	{
 		int Flags = 0;
 		dbg_assert(pChunk->m_ClientID >= 0, "erroneous client id");
-		dbg_assert(pChunk->m_ClientID < MAX_CLIENTS, "erroneous client id");
+		dbg_assert(pChunk->m_ClientID < MaxClients(), "erroneous client id");
 
 		if(pChunk->m_Flags & NETSENDFLAG_VITAL)
 			Flags = NET_CHUNKFLAG_VITAL;
@@ -787,21 +780,6 @@ void CNetServer::SetMaxClientsPerIP(int Max)
 		Max = NET_MAX_CLIENTS;
 
 	m_MaxClientsPerIP = Max;
-}
-
-bool CNetServer::SetTimedOut(int ClientID, int OrigID)
-{
-	if(m_aSlots[ClientID].m_Connection.State() != NET_CONNSTATE_ERROR)
-		return false;
-
-	m_aSlots[ClientID].m_Connection.SetTimedOut(ClientAddr(OrigID), m_aSlots[OrigID].m_Connection.SeqSequence(), m_aSlots[OrigID].m_Connection.AckSequence(), m_aSlots[OrigID].m_Connection.SecurityToken(), m_aSlots[OrigID].m_Connection.ResendBuffer(), m_aSlots[OrigID].m_Connection.m_Sixup);
-	m_aSlots[OrigID].m_Connection.Reset();
-	return true;
-}
-
-void CNetServer::SetTimeoutProtected(int ClientID)
-{
-	m_aSlots[ClientID].m_Connection.m_TimeoutProtected = true;
 }
 
 int CNetServer::ResetErrorString(int ClientID)

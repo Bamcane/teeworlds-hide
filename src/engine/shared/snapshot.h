@@ -3,7 +3,6 @@
 #ifndef ENGINE_SHARED_SNAPSHOT_H
 #define ENGINE_SHARED_SNAPSHOT_H
 
-#include <base/system.h>
 #include <cstddef>
 #include <stdint.h>
 
@@ -110,7 +109,7 @@ public:
 		CHolder *m_pPrev;
 		CHolder *m_pNext;
 
-		int64 m_Tagtime;
+		int64_t m_Tagtime;
 		int m_Tick;
 
 		int m_SnapSize;
@@ -128,8 +127,8 @@ public:
 	void Init();
 	void PurgeAll();
 	void PurgeUntil(int Tick);
-	void Add(int Tick, int64 Tagtime, int DataSize, void *pData, int AltDataSize, void *pAltData);
-	int Get(int Tick, int64 *pTagtime, CSnapshot **ppData, CSnapshot **ppAltData);
+	void Add(int Tick, int64_t Tagtime, int DataSize, void *pData, int AltDataSize, void *pAltData);
+	int Get(int Tick, int64_t *pTagtime, CSnapshot **ppData, CSnapshot **ppAltData);
 };
 
 class CSnapshotBuilder
@@ -152,10 +151,12 @@ class CSnapshotBuilder
 	int GetExtendedItemTypeIndex(int TypeID);
 	int GetTypeFromIndex(int Index);
 
+	bool m_Sixup;
+
 public:
 	CSnapshotBuilder();
 
-	void Init();
+	void Init(bool Sixup = false);
 
 	void *NewItem(int Type, int ID, int Size);
 

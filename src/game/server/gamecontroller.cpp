@@ -527,6 +527,24 @@ void IGameController::Snap(int SnappingClient)
 	pGameInfoEx->m_Flags = GAMEINFOFLAG_GAMETYPE_PLUS | GAMEINFOFLAG_ALLOW_EYE_WHEEL | GAMEINFOFLAG_ALLOW_HOOK_COLL | GAMEINFOFLAG_ENTITIES_FNG | GAMEINFOFLAG_PREDICT_VANILLA;
 	pGameInfoEx->m_Flags2 = GAMEINFOFLAG2_GAMETYPE_CITY | GAMEINFOFLAG2_ALLOW_X_SKINS | GAMEINFOFLAG2_NO_WEAK_HOOK_AND_BOUNCE | GAMEINFOFLAG2_HUD_DDRACE;
 	pGameInfoEx->m_Version = GAMEINFO_CURVERSION;
+
+	if(Server()->IsSixup(SnappingClient))
+	{
+		protocol7::CNetObj_GameData *pGameData = static_cast<protocol7::CNetObj_GameData *>(Server()->SnapNewItem(-protocol7::NETOBJTYPE_GAMEDATA, 0, sizeof(protocol7::CNetObj_GameData)));
+		if(!pGameData)
+			return;
+
+		pGameData->m_GameStartTick = m_RoundStartTick;
+		pGameData->m_GameStateFlags = 0;
+		if(m_GameOverTick != -1)
+			pGameData->m_GameStateFlags |= protocol7::GAMESTATEFLAG_GAMEOVER;
+		if(m_SuddenDeath)
+			pGameData->m_GameStateFlags |= protocol7::GAMESTATEFLAG_SUDDENDEATH;
+		if(GameServer()->m_World.m_Paused)
+			pGameData->m_GameStateFlags |= protocol7::GAMESTATEFLAG_PAUSED;
+
+		pGameData->m_GameStateEndTick = 0;
+	}
 }
 
 int IGameController::GetAutoTeam(int NotThisID)

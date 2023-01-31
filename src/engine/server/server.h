@@ -5,9 +5,18 @@
 
 #include <base/hash.h>
 
+#include <engine/console.h>
 #include <engine/server.h>
-#include <engine/shared/uuid_manager.h>
 
+#include <engine/map.h>
+
+#include <engine/shared/demo.h>
+#include <engine/shared/econ.h>
+#include <engine/shared/netban.h>
+#include <engine/shared/network.h>
+#include <engine/shared/protocol.h>
+#include <engine/shared/snapshot.h>
+#include <engine/shared/uuid_manager.h>
 
 #include <list>
 #include <memory>
@@ -132,6 +141,7 @@ public:
 		int m_Score;
 		int m_Authed;
 		int m_AuthTries;
+		int m_NextMapChunk;
 
 		const IConsole::CCommandInfo *m_pRconCmdToSend;
 
@@ -140,6 +150,7 @@ public:
 		char m_aLanguage[16];
 		NETADDR m_Addr;
 		bool m_CustClt;
+		bool m_Sixup;
 	};
 
 	CClient m_aClients[MAX_CLIENTS];
@@ -165,12 +176,18 @@ public:
 
 	int64 m_Lastheartbeat;
 	//static NETADDR4 master_server;
+	enum
+	{
+		MAP_TYPE_SIX = 0,
+		MAP_TYPE_SIXUP,
+		NUM_MAP_TYPES
+	};
 
 	char m_aCurrentMap[64];
-	SHA256_DIGEST m_CurrentMapSha256;
-	unsigned m_CurrentMapCrc;
-	unsigned char *m_pCurrentMapData;
-	int m_CurrentMapSize;
+	SHA256_DIGEST m_aCurrentMapSha256[NUM_MAP_TYPES];
+	unsigned m_aCurrentMapCrc[NUM_MAP_TYPES];
+	unsigned char *m_apCurrentMapData[NUM_MAP_TYPES];
+	int m_aCurrentMapSize[NUM_MAP_TYPES];
 
 	bool m_ServerInfoHighLoad;
 	int64 m_ServerInfoFirstRequest;
@@ -221,6 +238,7 @@ public:
 	void SendRconType(int ClientID, bool UsernameReq);
 	void SendCapabilities(int ClientID);
 	void SendMap(int ClientID);
+	void SendMapData(int ClientID, int Chunk);
 	void SendConnectionReady(int ClientID);
 	void SendRconLine(int ClientID, const char *pLine);
 	static void SendRconLineAuthed(const char *pLine, void *pUser);
@@ -257,7 +275,9 @@ class CCache
 
 	void ExpireServerInfo() override;
 	void CacheServerInfo(CCache *pCache, int Type, bool SendClients);
+	void CacheServerInfoSixup(CCache *pCache, bool SendClients);
 	void SendServerInfo(const NETADDR *pAddr, int Token, int Type, bool SendClients);
+	void GetServerInfoSixup(CPacker *pPacker, int Token, bool SendClients);
 	bool RateLimitServerInfoConnless();
 	void SendServerInfoConnless(const NETADDR *pAddr, int Token, int Type);
 	void UpdateRegisterServerInfo();
@@ -298,6 +318,8 @@ public:
 	void SetClientLanguage(int ClientID, const char* pLanguage) override;
 	int* GetIdMap(int ClientID) override;
 	void SetCustClt(int ClientID) override;
+
+	bool IsSixup(int ClientID) const override { return ClientID != -1 && m_aClients[ClientID].m_Sixup; }
 };
 
 #endif

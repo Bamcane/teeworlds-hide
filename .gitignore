@@ -2,7 +2,9 @@ bam
 .bam
 config.lua
 datasrc/__pycache__
+datasrc/seven/__pycache__
 datasrc/*.pyc
+datasrc/seven/*.pyc
 objs
 src/game/generated
 SDL.dll

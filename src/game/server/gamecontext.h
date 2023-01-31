@@ -18,6 +18,8 @@
 #include "gameworld.h"
 #include "player.h"
 
+#include <memory>
+#include <string>
 #ifdef _MSC_VER
 typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
@@ -55,6 +57,7 @@ class CGameContext : public IGameServer
 	CLayers m_Layers;
 	CCollision m_Collision;
 	CNetObjHandler m_NetObjHandler;
+	protocol7::CNetObjHandler m_NetObjHandler7;
 	CTuningParams m_Tuning;
 
 	static void ConsoleOutputCallback_Chat(const char *pLine, void *pUser);
@@ -105,6 +108,7 @@ public:
 
 	IGameController *m_pController;
 	CGameWorld m_World;
+	std::vector<std::string> m_vCensorlist;
 
 	CTile *m_pTiles;
 
@@ -154,7 +158,10 @@ public:
 		CHAT_ALL=-2,
 		CHAT_SPEC=-1,
 		CHAT_RED=0,
-		CHAT_BLUE=1
+		CHAT_BLUE=1,
+
+		CHAT_SIX = 1 << 0,
+		CHAT_SIXUP = 1 << 1,
 	};
 
 	// network
@@ -170,6 +177,7 @@ public:
 
 	const char* Localize(const char *pLanguageCode, const char* pText) const;
 
+	void WhisperID(int ClientID, int VictimID, const char *pMessage);
 
 
 	//
@@ -186,6 +194,9 @@ public:
 	void OnSnap(int ClientID) override;
 	void OnPostSnap() override;
 
+
+	void *PreProcessMsg(int *pMsgID, CUnpacker *pUnpacker, int ClientID);
+	void CensorMessage(char *pCensoredMessage, const char *pMessage, int Size);
 	void OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID) override;
 
 	void OnClientConnected(int ClientID) override;
@@ -202,6 +213,8 @@ public:
 	const char *GameType() override;
 	const char *Version() override;
 	const char *NetVersion() override;
+
+	void OnUpdatePlayerServerInfo(char *aBuf, int BufSize, int ID) override;
 };
 
 inline int64_t CmaskAll() { return -1LL; }

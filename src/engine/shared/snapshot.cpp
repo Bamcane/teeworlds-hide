@@ -8,6 +8,7 @@
 #include <cstdlib>
 
 #include <base/system.h>
+#include <game/generated/protocolglue.h>
 
 // CSnapshot
 
@@ -504,7 +505,7 @@ void CSnapshotStorage::PurgeUntil(int Tick)
 	m_pLast = 0;
 }
 
-void CSnapshotStorage::Add(int Tick, int64 Tagtime, int DataSize, void *pData, int AltDataSize, void *pAltData)
+void CSnapshotStorage::Add(int Tick, int64_t Tagtime, int DataSize, void *pData, int AltDataSize, void *pAltData)
 {
 	// allocate memory for holder + snapshot_data
 	int TotalSize = sizeof(CHolder) + DataSize;
@@ -545,7 +546,7 @@ void CSnapshotStorage::Add(int Tick, int64 Tagtime, int DataSize, void *pData, i
 	m_pLast = pHolder;
 }
 
-int CSnapshotStorage::Get(int Tick, int64 *pTagtime, CSnapshot **ppData, CSnapshot **ppAltData)
+int CSnapshotStorage::Get(int Tick, int64_t *pTagtime, CSnapshot **ppData, CSnapshot **ppAltData)
 {
 	CHolder *pHolder = m_pFirst;
 
@@ -574,10 +575,11 @@ CSnapshotBuilder::CSnapshotBuilder()
 	m_NumExtendedItemTypes = 0;
 }
 
-void CSnapshotBuilder::Init()
+void CSnapshotBuilder::Init(bool Sixup)
 {
 	m_DataSize = 0;
 	m_NumItems = 0;
+	m_Sixup = Sixup;
 
 	for(int i = 0; i < m_NumExtendedItemTypes; i++)
 	{
@@ -660,10 +662,26 @@ void *CSnapshotBuilder::NewItem(int Type, int ID, int Size)
 		return 0;
 	}
 
+	bool Extended = false;
 	if(Type >= OFFSET_UUID)
+	{
+		Extended = true;
 		Type = GetTypeFromIndex(GetExtendedItemTypeIndex(Type));
+	}
 
 	CSnapshotItem *pObj = (CSnapshotItem *)(m_aData + m_DataSize);
+
+	if(m_Sixup && !Extended)
+	{
+		if(Type >= 0)
+			Type = Obj_SixToSeven(Type);
+		else
+			Type *= -1;
+
+		if(Type < 0)
+			return pObj;
+	}
+
 	mem_zero(pObj, sizeof(CSnapshotItem) + Size);
 	pObj->m_TypeAndID = (Type << 16) | ID;
 	m_aOffsets[m_NumItems] = m_DataSize;

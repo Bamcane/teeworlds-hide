@@ -787,61 +787,24 @@ void CCharacter::Snap(int SnappingClient)
 
 	if (!Server()->Translate(Id, SnappingClient))
 		return;
+	CCharacterCore *pCore;
+	int Tick, Emote = m_EmoteType, Weapon = m_ActiveWeapon, AmmoCount = 0,
+		  Health = 0, Armor = 0;
 
-	if(NetworkClipped(SnappingClient))
-		return;
-
-	CNetObj_Character *pCharacter = static_cast<CNetObj_Character *>(Server()->SnapNewItem(NETOBJTYPE_CHARACTER, Id, sizeof(CNetObj_Character)));
-	if(!pCharacter)
-		return;
-
-	// write down the m_Core
 	if(!m_ReckoningTick || GameServer()->m_World.m_Paused)
 	{
-		// no dead reckoning when paused because the client doesn't know
-		// how far to perform the reckoning
-		pCharacter->m_Tick = 0;
-		m_Core.Write(pCharacter);
+		Tick = 0;
+		pCore = &m_Core;
 	}
 	else
 	{
-		pCharacter->m_Tick = m_ReckoningTick;
-		m_SendCore.Write(pCharacter);
+		Tick = m_ReckoningTick;
+		pCore = &m_SendCore;
 	}
 
-	if (pCharacter->m_HookedPlayer != -1)
-	{
-		if (!Server()->Translate(pCharacter->m_HookedPlayer, SnappingClient))
-			pCharacter->m_HookedPlayer = -1;
-	}
-
-	pCharacter->m_Emote = m_EmoteType;
-
-	pCharacter->m_AmmoCount = 0;
-	pCharacter->m_Health = 0;
-	pCharacter->m_Armor = 0;
-
-	pCharacter->m_Weapon = m_ActiveWeapon;
-	pCharacter->m_AttackTick = m_AttackTick;
-
-	pCharacter->m_Direction = m_Input.m_Direction;
-
-	if(m_pPlayer->GetCID() == SnappingClient || SnappingClient == -1 ||
-		(!g_Config.m_SvStrictSpectateMode && m_pPlayer->GetCID() == GameServer()->m_apPlayers[SnappingClient]->m_SpectatorID))
-	{
-		pCharacter->m_Health = m_Health;
-		pCharacter->m_Armor = m_Armor;
-		if(m_aWeapons[m_ActiveWeapon].m_Ammo > 0)
-			pCharacter->m_AmmoCount = m_aWeapons[m_ActiveWeapon].m_Ammo;
-	}
-
-	if(pCharacter->m_Emote == EMOTE_NORMAL)
-	{
-		if(250 - ((Server()->Tick() - m_LastAction)%(250)) < 5)
-			pCharacter->m_Emote = EMOTE_BLINK;
-	}
-
-	pCharacter->m_PlayerFlags = GetPlayer()->m_PlayerFlags;
+	Health = m_Health;
+	Armor = m_Armor;
+	AmmoCount = m_aWeapons[Weapon].m_Ammo;
 
 	CNetObj_DDNetCharacter *pDDNetCharacter = static_cast<CNetObj_DDNetCharacter *>(Server()->SnapNewItem(NETOBJTYPE_DDNETCHARACTER, Id, sizeof(CNetObj_DDNetCharacter)));
 	if(!pDDNetCharacter)
@@ -882,6 +845,58 @@ void CCharacter::Snap(int SnappingClient)
 
 	pDDNetCharacter->m_TargetX = m_Core.m_Input.m_TargetX;
 	pDDNetCharacter->m_TargetY = m_Core.m_Input.m_TargetY;
+
+	if(!Server()->IsSixup(SnappingClient))
+	{
+		CNetObj_Character *pCharacter = static_cast<CNetObj_Character *>(Server()->SnapNewItem(NETOBJTYPE_CHARACTER, Id, sizeof(CNetObj_Character)));
+		if(!pCharacter)
+			return;
+
+		pCore->Write(pCharacter);
+
+		pCharacter->m_Tick = Tick;
+		pCharacter->m_Emote = Emote;
+
+		if(pCharacter->m_HookedPlayer != -1)
+		{
+			if(!Server()->Translate(pCharacter->m_HookedPlayer, SnappingClient))
+				pCharacter->m_HookedPlayer = -1;
+		}
+
+		pCharacter->m_AttackTick = m_AttackTick;
+		pCharacter->m_Direction = m_Input.m_Direction;
+		pCharacter->m_Weapon = Weapon;
+		pCharacter->m_AmmoCount = AmmoCount;
+		pCharacter->m_Health = Health;
+		pCharacter->m_Armor = Armor;
+		pCharacter->m_PlayerFlags = GetPlayer()->m_PlayerFlags;
+	}
+	else
+	{
+		protocol7::CNetObj_Character *pCharacter = static_cast<protocol7::CNetObj_Character *>(Server()->SnapNewItem(NETOBJTYPE_CHARACTER, Id, sizeof(protocol7::CNetObj_Character)));
+		if(!pCharacter)
+			return;
+
+		pCore->Write(reinterpret_cast<CNetObj_CharacterCore *>(static_cast<protocol7::CNetObj_CharacterCore *>(pCharacter)));
+		if(pCharacter->m_Angle > (int)(pi * 256.0f))
+		{
+			pCharacter->m_Angle -= (int)(2.0f * pi * 256.0f);
+		}
+
+		pCharacter->m_Tick = Tick;
+		pCharacter->m_Emote = Emote;
+		pCharacter->m_AttackTick = m_AttackTick;
+		pCharacter->m_Direction = m_Input.m_Direction;
+		pCharacter->m_Weapon = Weapon;
+		pCharacter->m_AmmoCount = AmmoCount;
+
+		if(Weapon == WEAPON_NINJA)
+			pCharacter->m_AmmoCount = m_Ninja.m_ActivationTick + g_pData->m_Weapons.m_Ninja.m_Duration * Server()->TickSpeed() / 1000;
+
+		pCharacter->m_Health = Health;
+		pCharacter->m_Armor = Armor;
+		pCharacter->m_TriggeredEvents = 0;
+	}
 }
 
 int CCharacter::GetCID() const

@@ -25,6 +25,8 @@ class CRegister : public IRegister
 
 		PROTOCOL_TW6_IPV6 = 0,
 		PROTOCOL_TW6_IPV4,
+		PROTOCOL_TW7_IPV6,
+		PROTOCOL_TW7_IPV4,
 		NUM_PROTOCOLS,
 	};
 
@@ -173,6 +175,8 @@ const char *CRegister::ProtocolToScheme(int Protocol)
 	{
 	case PROTOCOL_TW6_IPV6: return "tw-0.6+udp://";
 	case PROTOCOL_TW6_IPV4: return "tw-0.6+udp://";
+	case PROTOCOL_TW7_IPV6: return "tw-0.7+udp://";
+	case PROTOCOL_TW7_IPV4: return "tw-0.7+udp://";
 	}
 	dbg_assert(false, "invalid protocol");
 	dbg_break();
@@ -184,6 +188,8 @@ const char *CRegister::ProtocolToString(int Protocol)
 	{
 	case PROTOCOL_TW6_IPV6: return "tw0.6/ipv6";
 	case PROTOCOL_TW6_IPV4: return "tw0.6/ipv4";
+	case PROTOCOL_TW7_IPV6: return "tw0.7/ipv6";
+	case PROTOCOL_TW7_IPV4: return "tw0.7/ipv4";
 	}
 	dbg_assert(false, "invalid protocol");
 	dbg_break();
@@ -199,6 +205,14 @@ bool CRegister::ProtocolFromString(int *pResult, const char *pString)
 	{
 		*pResult = PROTOCOL_TW6_IPV4;
 	}
+	else if(str_comp(pString, "tw0.7/ipv6") == 0)
+	{
+		*pResult = PROTOCOL_TW7_IPV6;
+	}
+	else if(str_comp(pString, "tw0.7/ipv4") == 0)
+	{
+		*pResult = PROTOCOL_TW7_IPV4;
+	}
 	else
 	{
 		*pResult = -1;
@@ -213,6 +227,8 @@ const char *CRegister::ProtocolToSystem(int Protocol)
 	{
 	case PROTOCOL_TW6_IPV6: return "register/6/ipv6";
 	case PROTOCOL_TW6_IPV4: return "register/6/ipv4";
+	case PROTOCOL_TW7_IPV6: return "register/7/ipv6";
+	case PROTOCOL_TW7_IPV4: return "register/7/ipv4";
 	}
 	dbg_assert(false, "invalid protocol");
 	dbg_break();
@@ -224,6 +240,8 @@ IPRESOLVE CRegister::ProtocolToIpresolve(int Protocol)
 	{
 	case PROTOCOL_TW6_IPV6: return IPRESOLVE::V6;
 	case PROTOCOL_TW6_IPV4: return IPRESOLVE::V4;
+	case PROTOCOL_TW7_IPV6: return IPRESOLVE::V6;
+	case PROTOCOL_TW7_IPV4: return IPRESOLVE::V4;
 	}
 	dbg_assert(false, "invalid protocol");
 	dbg_break();
@@ -273,6 +291,10 @@ void CRegister::CProtocol::SendRegister()
 	}
 	pRegister->HeaderString("Address", aAddress);
 	pRegister->HeaderString("Secret", aSecret);
+	if(m_Protocol == PROTOCOL_TW7_IPV6 || m_Protocol == PROTOCOL_TW7_IPV4)
+	{
+		pRegister->HeaderString("Connless-Token", m_pParent->m_aConnlessTokenHex);
+	}
 	pRegister->HeaderString("Challenge-Secret", aChallengeSecret);
 	if(m_HaveChallengeToken)
 	{
@@ -466,6 +488,8 @@ CRegister::CRegister(IConsole *pConsole, IEngine *pEngine, int ServerPort, unsig
 	m_aProtocols{
 		CProtocol(this, PROTOCOL_TW6_IPV6),
 		CProtocol(this, PROTOCOL_TW6_IPV4),
+		CProtocol(this, PROTOCOL_TW7_IPV6),
+		CProtocol(this, PROTOCOL_TW7_IPV4),
 	}
 {
 	const int HEADER_LEN = sizeof(SERVERBROWSE_CHALLENGE);
@@ -485,8 +509,8 @@ void CRegister::Update()
 {
 	if(!m_GotFirstUpdateCall)
 	{
-		bool Ipv6 = m_aProtocolEnabled[PROTOCOL_TW6_IPV6];
-		bool Ipv4 = m_aProtocolEnabled[PROTOCOL_TW6_IPV4];
+		bool Ipv6 = m_aProtocolEnabled[PROTOCOL_TW6_IPV6] || m_aProtocolEnabled[PROTOCOL_TW7_IPV6];
+		bool Ipv4 = m_aProtocolEnabled[PROTOCOL_TW6_IPV4] || m_aProtocolEnabled[PROTOCOL_TW7_IPV4];
 		if(Ipv6 && Ipv4)
 		{
 			dbg_assert(!HttpHasIpresolveBug(), "curl version < 7.77.0 does not support registering via both IPv4 and IPv6, set `sv_register ipv6` or `sv_register ipv4`");
@@ -542,15 +566,22 @@ void CRegister::OnConfigChange()
 			if(str_comp(aBuf, "ipv6") == 0)
 			{
 				m_aProtocolEnabled[PROTOCOL_TW6_IPV6] = true;
+				m_aProtocolEnabled[PROTOCOL_TW7_IPV6] = true;
 			}
 			else if(str_comp(aBuf, "ipv4") == 0)
 			{
 				m_aProtocolEnabled[PROTOCOL_TW6_IPV4] = true;
+				m_aProtocolEnabled[PROTOCOL_TW7_IPV4] = true;
 			}
 			else if(str_comp(aBuf, "tw0.6") == 0)
 			{
 				m_aProtocolEnabled[PROTOCOL_TW6_IPV6] = true;
 				m_aProtocolEnabled[PROTOCOL_TW6_IPV4] = true;
+			}
+			else if(str_comp(aBuf, "tw0.7") == 0)
+			{
+				m_aProtocolEnabled[PROTOCOL_TW7_IPV6] = true;
+				m_aProtocolEnabled[PROTOCOL_TW7_IPV4] = true;
 			}
 			else if(!ProtocolFromString(&Protocol, aBuf))
 			{

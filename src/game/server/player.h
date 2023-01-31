@@ -6,6 +6,7 @@
 // this include should perhaps be removed
 #include "entities/character.h"
 #include "gamecontext.h"
+#include "teeinfo.h"
 
 // player object
 class CPlayer
@@ -67,13 +68,7 @@ public:
 	int m_LastKill;
 
 	// TODO: clean this up
-	struct
-	{
-		char m_SkinName[64];
-		int m_UseCustomColor;
-		int m_ColorBody;
-		int m_ColorFeet;
-	} m_TeeInfos;
+	CTeeInfo m_TeeInfos;
 
 	int m_RespawnTick;
 	int m_DieTick;
