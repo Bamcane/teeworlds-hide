@@ -118,17 +118,19 @@ public:
 	int m_LockTeams;
 
 	// voting
-	void StartVote(const char *pDesc, const char *pCommand, const char *pReason);
+	void StartVote(const char *pDesc, const char *pCommand, const char *pReason, const char *pSixupDesc);
 	void EndVote();
 	void SendVoteSet(int ClientID);
 	void SendVoteStatus(int ClientID, int Total, int Yes, int No);
 	void AbortVoteKickOnDisconnect(int ClientID);
 
+	int m_VoteType;
 	int m_VoteCreator;
 	int64 m_VoteCloseTime;
 	bool m_VoteUpdate;
 	int m_VotePos;
 	char m_aVoteDescription[VOTE_DESC_LENGTH];
+	char m_aSixupVoteDescription[VOTE_DESC_LENGTH];
 	char m_aVoteCommand[VOTE_CMD_LENGTH];
 	char m_aVoteReason[VOTE_REASON_LENGTH];
 	int m_NumVoteOptions;
@@ -138,6 +140,7 @@ public:
 		VOTE_ENFORCE_UNKNOWN=0,
 		VOTE_ENFORCE_NO,
 		VOTE_ENFORCE_YES,
+		VOTE_ENFORCE_ABORT,
 	};
 	CHeap *m_pVoteOptionHeap;
 	CVoteOptionServer *m_pVoteOptionFirst;
@@ -166,6 +169,7 @@ public:
 
 	// network
 	void SendMotd(int To, const char* pText);
+	void SendSettings(int ClientID);
 	void SendChatTarget(int To, const char *pText);
 	void SendChatTarget_Locazition(int To, const char *pText, ...);
 	void SendChat(int ClientID, int Team, const char *pText);
@@ -215,6 +219,23 @@ public:
 	const char *NetVersion() override;
 
 	void OnUpdatePlayerServerInfo(char *aBuf, int BufSize, int ID) override;
+
+	enum
+	{
+		VOTE_ENFORCE_NO_ADMIN = VOTE_ENFORCE_YES + 1,
+		VOTE_ENFORCE_YES_ADMIN,
+
+		VOTE_TYPE_UNKNOWN = 0,
+		VOTE_TYPE_OPTION,
+		VOTE_TYPE_KICK,
+		VOTE_TYPE_SPECTATE,
+	};
+	int m_VoteVictim;
+	int m_VoteEnforcer;
+
+	inline bool IsOptionVote() const { return m_VoteType == VOTE_TYPE_OPTION; }
+	inline bool IsKickVote() const { return m_VoteType == VOTE_TYPE_KICK; }
+	inline bool IsSpecVote() const { return m_VoteType == VOTE_TYPE_SPECTATE; }
 };
 
 inline int64_t CmaskAll() { return -1LL; }

@@ -213,6 +213,7 @@ void CPlayer::Snap(int SnappingClient)
 		// Times are in milliseconds for 0.7
 		pPlayerInfo->m_Score = Score;
 		pPlayerInfo->m_Latency = Latency;
+		
 	}
 
 	if(m_ClientID == SnappingClient && m_Team == TEAM_SPECTATORS)
@@ -353,7 +354,7 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 	char aBuf[512];
 	if(DoChatMsg)
 	{
-		GameServer()->SendChatTarget_Locazition(-1, "'%s' joined the %s", Server()->ClientName(m_ClientID), GameServer()->m_pController->GetTeamName(Team));
+		GameServer()->SendChatTarget_Locazition(-1, "'%s' joined the %s", Server()->ClientName(m_ClientID), GameServer()->m_pController->GetTeamName(Team));	
 	}
 
 	if(Team != m_Team)
@@ -378,6 +379,13 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 				GameServer()->m_apPlayers[i]->m_SpectatorID = SPEC_FREEVIEW;
 		}
 	}
+
+	protocol7::CNetMsg_Sv_Team Msg;
+	Msg.m_ClientID = m_ClientID;
+	Msg.m_Team = m_Team;
+	Msg.m_Silent = 0;
+	Msg.m_CooldownTick = m_LastSetTeam + Server()->TickSpeed() * 3;
+	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, -1);
 }
 
 void CPlayer::TryRespawn()

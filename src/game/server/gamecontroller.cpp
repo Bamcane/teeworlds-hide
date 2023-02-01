@@ -406,12 +406,12 @@ void IGameController::Tick()
 	{
 		m_Warmup--;
 		if(!m_Warmup && apPlayers.size() > 1)
-			apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, false);
+			apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, 0);
 	}
 
 	if(!Seekers && Hiders && apPlayers.size() > 1)
 	{
-		apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, false);
+		apPlayers[random_int(0, apPlayers.size()-1)]->SetTeam(TEAM_RED, 0);
 	}
 
 	if(m_GameOverTick != -1)

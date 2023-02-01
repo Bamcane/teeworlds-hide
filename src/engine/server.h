@@ -4,6 +4,7 @@
 #define ENGINE_SERVER_H
 #include "kernel.h"
 #include "message.h"
+#include <base/math.h>
 
 #include <game/generated/protocol.h>
 #include <game/generated/protocol7.h>
@@ -50,6 +51,16 @@ public:
 	virtual int GetClientInfo(int ClientID, CClientInfo *pInfo) = 0;
 	virtual void GetClientAddr(int ClientID, char *pAddrStr, int Size) = 0;
 
+	/**
+	 * Returns the version of the client with the given client ID.
+	 *
+	 * @param ClientID the client ID, which must be between 0 and
+	 * MAX_CLIENTS - 1, or equal to SERVER_DEMO_CLIENT for server demos.
+	 *
+	 * @return The version of the client with the given client ID.
+	 * For server demos this is always the latest client version.
+	 * On errors, VERSION_NONE is returned.
+	 */
 	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID) = 0;
 
 	template<class T, typename std::enable_if<!protocol7::is_sixup<T>::value, int>::type = 0>
@@ -86,19 +97,19 @@ public:
 	}
 
 	template<class T>
-	int SendPackMsgTranslate(T *pMsg, int Flags, int ClientID)
+	int SendPackMsgTranslate(const T *pMsg, int Flags, int ClientID)
 	{
 		return SendPackMsgOne(pMsg, Flags, ClientID);
 	}
 
-	int SendPackMsgTranslate(CNetMsg_Sv_Emoticon *pMsg, int Flags, int ClientID)
+	int SendPackMsgTranslate(const CNetMsg_Sv_Emoticon *pMsg, int Flags, int ClientID)
 	{
 		CNetMsg_Sv_Emoticon MsgCopy;
 		mem_copy(&MsgCopy, pMsg, sizeof(MsgCopy));
 		return Translate(MsgCopy.m_ClientID, ClientID) && SendPackMsgOne(&MsgCopy, Flags, ClientID);
 	}
 
-	int SendPackMsgTranslate(CNetMsg_Sv_Chat *pMsg, int Flags, int ClientID)
+	int SendPackMsgTranslate(const CNetMsg_Sv_Chat *pMsg, int Flags, int ClientID)
 	{
 		CNetMsg_Sv_Chat MsgCopy;
 		mem_copy(&MsgCopy, pMsg, sizeof(MsgCopy));
@@ -124,15 +135,19 @@ public:
 		return SendPackMsgOne(&MsgCopy, Flags, ClientID);
 	}
 
-	int SendPackMsgTranslate(CNetMsg_Sv_KillMsg *pMsg, int Flags, int ClientID)
+	int SendPackMsgTranslate(const CNetMsg_Sv_KillMsg *pMsg, int Flags, int ClientID)
 	{
-		if (!Translate(pMsg->m_Victim, ClientID)) return 0;
-		if (!Translate(pMsg->m_Killer, ClientID)) pMsg->m_Killer = pMsg->m_Victim;
-		return SendPackMsgOne(pMsg, Flags, ClientID);
+		CNetMsg_Sv_KillMsg MsgCopy;
+		mem_copy(&MsgCopy, pMsg, sizeof(MsgCopy));
+		if(!Translate(MsgCopy.m_Victim, ClientID))
+			return 0;
+		if(!Translate(MsgCopy.m_Killer, ClientID))
+			MsgCopy.m_Killer = MsgCopy.m_Victim;
+		return SendPackMsgOne(&MsgCopy, Flags, ClientID);
 	}
 
 	template<class T>
-	int SendPackMsgOne(T *pMsg, int Flags, int ClientID)
+	int SendPackMsgOne(const T *pMsg, int Flags, int ClientID)
 	{
 		dbg_assert(ClientID != -1, "SendPackMsgOne called with -1");
 		CMsgPacker Packer(pMsg->MsgID(), false, protocol7::is_sixup<T>::value);
@@ -142,40 +157,41 @@ public:
 		return SendMsg(&Packer, Flags, ClientID);
 	}
 
-	bool Translate(int& target, int client)
+	bool Translate(int &Target, int Client)
 	{
-		if(IsSixup(client))
+		if(IsSixup(Client))
 			return true;
 		CClientInfo info;
-		GetClientInfo(client, &info);
+		GetClientInfo(Client, &info);
 		if (info.m_CustClt)
 			return true;
-		int* map = GetIdMap(client);
-		bool found = false;
-		for (int i = 0; i < VANILLA_MAX_CLIENTS; i++)
+		int *pMap = GetIdMap(Client);
+		bool Found = false;
+		for(int i = 0; i < VANILLA_MAX_CLIENTS; i++)
 		{
-			if (target == map[i])
+			if(Target == pMap[i])
 			{
-				target = i;
-				found = true;
+				Target = i;
+				Found = true;
 				break;
 			}
 		}
-		return found;
+		return Found;
 	}
 
-	bool ReverseTranslate(int& target, int client)
+	bool ReverseTranslate(int &Target, int Client)
 	{
-		if(IsSixup(client))
+		if(IsSixup(Client))
 			return true;
 		CClientInfo info;
-		GetClientInfo(client, &info);
+		GetClientInfo(Client, &info);
 		if (info.m_CustClt)
 			return true;
-		int* map = GetIdMap(client);
-		if (map[target] == -1)
+		Target = clamp(Target, 0, VANILLA_MAX_CLIENTS - 1);
+		int *pMap = GetIdMap(Client);
+		if(pMap[Target] == -1)
 			return false;
-		target = map[target];
+		Target = pMap[Target];
 		return true;
 	}
 
