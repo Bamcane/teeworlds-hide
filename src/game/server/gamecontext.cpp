@@ -290,7 +290,7 @@ void CGameContext::SendChatTarget_Locazition(int To, const char *pText, ...)
 			Buffer.clear();
 			Server()->Localization()->Format_VL(Buffer, m_apPlayers[i]->GetLanguage(), pText, VarArgs);
 			
-			SendChatTarget(To, Buffer.buffer());
+			SendChatTarget(i, Buffer.buffer());
 		}
 	}
 	
